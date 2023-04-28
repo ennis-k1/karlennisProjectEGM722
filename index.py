@@ -18,6 +18,7 @@ print(lgd_itm)
 # #import the csv file of social housing developments
 df = pd.read_csv('data_files/refinedSocialHousingDevelopments.csv')
 
+
 # create a new geodataframe creating a geomentry column of points
 developments = gpd.GeoDataFrame(df, # use the csv data, but only the name/website columns
                             geometry=gpd.points_from_xy(df['Long'], df['Lat']), # set the geometry using points_from_xy
@@ -26,6 +27,7 @@ developments = gpd.GeoDataFrame(df, # use the csv data, but only the name/websit
 developments.explore('Scheme Name',
                   m=mapObj, # add the markers to the same map we just created
                   marker_type='marker', # use a marker for the points, instead of a circle
+                  marker_kwds= {'icon': folium.Icon(color='red', icon='home', prefix='fa')}, # make the markers red with a plane icon from FA
                   popup=True, # show the information as a popup when we click on the marker
                   legend=False, # don't show a separate legend for the point layer
                  )
@@ -33,6 +35,30 @@ developments.explore('Scheme Name',
 join = gpd.sjoin(lgd_itm, developments, how='inner', lsuffix='left', rsuffix='right') # perform the spatial join
 #GROUP AND SUMMARISE THE STATUS OF DEVELOPMENTS IN EACH LGD
 print(join.groupby(['LGDNAME', 'Status'])['Units'].sum()) # summarize the road lengths by CountyName, Road_class
+
+
+housingNeedsDataFrame = pd.read_csv('data_files/refinedSocialHousingNeeds.csv',header=0,sep=",")
+# create a new geodataframe creating a geomentry column of points
+housingNeedAreas = gpd.GeoDataFrame(housingNeedsDataFrame, # use the csv data, but only the name/website columns
+                            geometry=gpd.points_from_xy(housingNeedsDataFrame['Long'], housingNeedsDataFrame['Lat']), # set the geometry using points_from_xy
+                             crs='epsg:4326') # set the CRS using a text representation of the EPSG code for WGS84 lat/lon
+
+
+
+housingNeedAreas.explore('Housing Need Assessment Area',
+                  m=mapObj, # add the markers to the same map we just created
+          color="red", # use red color on all points
+     marker_kwds=dict(radius=10, fill=True), # make marker radius 10px with fill
+                  popup=True, # show the information as a popup when we click on the marker
+                  legend=False, # don't show a separate legend for the point layer
+                 )
+
+# IDENTIFY DEVELOPMENTS IN EACH LGD BY JOINING THE TABLE TO THE SHAPEFILE
+joinHousingNeeds = gpd.sjoin(lgd_itm, housingNeedAreas, how='inner', lsuffix='left', rsuffix='right') # perform the spatial join
+pd.set_option('display.max_columns',None)
+#print(joinHousingNeeds.head())
+#GROUP AND SUMMARISE THE STATUS OF DEVELOPMENTS IN EACH LGD
+print(joinHousingNeeds.groupby(['LGDNAME'])['Total 5 Year Need Projection'].sum()) # summarize the road lengths by CountyName, Road_class
 
 #mapObj.show_in_browser()
 mapObj.save("map2.html")
