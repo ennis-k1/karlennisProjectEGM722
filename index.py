@@ -70,14 +70,12 @@ housingNeedAreas = gpd.GeoDataFrame(housingNeedsDataFrame, # use the csv data,
                             geometry=gpd.points_from_xy(housingNeedsDataFrame['Long'], housingNeedsDataFrame['Lat']), # set the geometry using points_from_xy
                              crs='epsg:4326') # set the CRS using a text representation of the EPSG code for WGS84 lat/lon
 
-
 # IDENTIFY SMALL SETTLEMENT NEEDS IN EACH LGD BY JOINING THE TABLE TO THE SHAPEFILE
 joinHousingNeeds = gpd.sjoin(lgd_itm, housingNeedAreas, how='inner', lsuffix='left', rsuffix='right') # perform the spatial join
 pd.set_option('display.max_columns',None)
 #GROUP AND SUMMARISE THE TOTAL NUMBER OF UNITS REQUIRED IN EACH LGD
 lgdNeedsSummary = joinHousingNeeds.groupby(['LGDNAME'])['Total 5 Year Need Projection'].sum()
 lgdNeedsSummary = pd.DataFrame(lgdNeedsSummary)
-#print('NUMBER OF UNITS NEEDED IN A LGD:\n',lgdNeedsSummary) # summarize the road lengths by CountyName, Road_class
 functions.prettyPrint("NUMBER OF UNITS NEEDED IN A LGD",lgdNeedsSummary )
 lgdNeedsSummary.to_html('Need Projected In A LGD.html',float_format='{:20,.2f}'.format) #CREATES HTML FILE
 
@@ -104,8 +102,8 @@ for index, row in housingNeedAreas.iterrows():
 
 housingNeedAreas = housingNeedAreas.sort_values('Distance', ascending=False)
 housingNeedAreas.rename(columns = {'Distance':'Distance(miles)'}, inplace = True)
-housingNeedAreas = gpd.GeoDataFrame(housingNeedAreas)
 functions.exportToCsv(housingNeedAreas,"Small Settlements With Nearest Housing Developments")
+functions.prettyPrint('Small Settlements With Nearest Housing Developments.html',housingNeedAreas)
 housingNeedAreas.to_html('Small Settlements With Nearest Housing Developments.html',float_format='{:20,.2f}'.format) #CREATES HTML FILE
 
 #*********************** MERGE BOTH DATA SETS *************************
